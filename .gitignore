@@ -1,1 +1,9 @@
+/data
 /temp
+/output
+/LICENSE
+/README.md
+/test.csv
+/train.csv
+/utt_spk_text.tsv
+/whisper-fine-tune.ipynb
