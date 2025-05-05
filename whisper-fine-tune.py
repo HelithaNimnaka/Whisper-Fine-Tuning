@@ -12,9 +12,9 @@ from transformers import (
 )
 
 # === Paths ===
-csv_path = "/mnt/sda1/FYP_2024/Helitha/DatasetsZ/asr_sinhala/train.csv"
+csv_path = "/mnt/sda1/FYP_2024/Helitha/DatasetsZ/asr_sinhala/Whisper-Fine-Tuning/train.csv"
 base_audio_path = "/mnt/sda1/FYP_2024/Helitha/DatasetsZ/"
-output_dir = "/mnt/sda1/FYP_2024/Helitha/DatasetsZ/asr_sinhala/output"
+output_dir = "/mnt/sda1/FYP_2024/Helitha/DatasetsZ/asr_sinhala/Whisper-Fine-Tuning/output"
 os.makedirs(output_dir, exist_ok=True)
 
 # === Load CSV & Fix Audio Paths ===
@@ -72,8 +72,6 @@ if os.listdir(output_path):
     processed_dataset = concatenate_datasets(processed_batches[:-10])
     train_dataset = processed_dataset
     eval_dataset = concatenate_datasets(processed_batches[-10:])
-
-
     print("Feature extraction loaded from disk.")
 else:
     print("Output folder is empty. Extracting features...")
@@ -110,11 +108,12 @@ else:
     num_batches = len(dataset) // batch_size + 1
 
     for i in range(num_batches):
+        if i < 43:
+            print(f"Skipping batch {i+1}/{num_batches}...")
+            continue
         start_idx = i * batch_size
         end_idx = min((i + 1) * batch_size, len(dataset))
-
         print(f"Processing batch {i+1}/{num_batches}...")
-
         # Process the current chunk
         processed_batch = dataset.select(range(start_idx, end_idx)).map(
             prepare_dataset,
@@ -219,8 +218,8 @@ training_args = Seq2SeqTrainingArguments(
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-3,
     warmup_steps=50,
-    num_train_epochs=3,
-    evaluation_strategy="epoch",
+    num_train_epochs=10,
+    eval_strategy="epoch",
     fp16=True,
     per_device_eval_batch_size=8,
     generation_max_length=128,
@@ -242,5 +241,5 @@ trainer = Seq2SeqTrainer(
 )
 model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
 
-#trainer.train()
-trainer.train(resume_from_checkpoint="/mnt/sda1/FYP_2024/Helitha/DatasetsZ/asr_sinhala/temp/checkpoint-15500")
+trainer.train()
+trainer.train(resume_from_checkpoint="Whisper-Fine-Tuning/temp/checkpoint-20000")
